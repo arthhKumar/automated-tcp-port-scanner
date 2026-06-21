@@ -1,0 +1,36 @@
+name: DevSecOps Static Application Security Testing (SAST)
+
+on:
+  push:
+    branches: [ "main", "master" ]
+  pull_request:
+    branches: [ "main", "master" ]
+
+jobs:
+  security_and_syntax_audit:
+    runs-on: ubuntu-latest
+
+    steps:
+    - name: 1. Fetch Repository Source Code
+      uses: actions/checkout@v4
+
+    - name: 2. Initialize Python Runtime Environment
+      uses: actions/setup-python@v5
+      with:
+        python-version: '3.10'
+
+    - name: 3. Deploy Enterprise Security & Linting Core Tools
+      run: |
+        python -m pip install --upgrade pip
+        pip install flake8 bandit
+
+    - name: 4. Run Flake8 Code Syntax Quality Audit
+      run: |
+        # Checks for syntax errors, broken logic gates, and structural formatting issues
+        flake8 . --count --select=E9,F63,F7,F82 --show-source --statistics
+        flake8 . --count --exit-zero --max-complexity=10 --max-line-length=127 --statistics
+
+    - name: 5. Execute Bandit Static Application Security Testing (SAST)
+      run: |
+        # Recursively scans python source files for hardcoded keys, shell injection vectors, and structural flaws
+        bandit -r . -ll -ii
